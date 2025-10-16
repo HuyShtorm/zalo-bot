@@ -2,34 +2,48 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const path = require('path');
 
 const app = express();
 app.use(bodyParser.json());
 
-const ACCESS_TOKEN = '1236451742861039202:TintsRsjThMzqVaJaTAMACZRSQAnZEjAUtBvVqzQweyPXtXPtDaDAfyfJsafEFpV '; // dán token từ tin nhắn Zalo vào đây
+const ACCESS_TOKEN = '1236451742861039202:TintsRsjThMzqVaJaTAMACZRSQAnZEjAUtBvVqzQweyPXtXPtDaDAfyfJsafEFpV';
 
-// Webhook nhận sự kiện tin nhắn
-app.post('/webhook', async (req, res) => {
-  const { event_name, message } = req.body;
+// 🟢 Cho phép truy cập file xác thực Zalo
+app.use(express.static(path.join(__dirname)));
 
-  // Kiểm tra loại sự kiện là có tin nhắn từ user
-  if (event_name === 'user_send_text') {
-    const userId = message.from.id;
-    const userMsg = message.text;
-
-    // Gửi lại tin nhắn phản hồi
-    await axios.post('https://openapi.zalo.me/v3.0/oa/message/text', {
-      recipient: { user_id: userId },
-      message: { text: `Vợ của Huy nói: ${userMsg} đó hả ❤️` },
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'access_token': ACCESS_TOKEN,
-      },
-    });
-  }
-
-  res.status(200).send('OK');
+// 🟢 Trang kiểm tra server
+app.get('/', (req, res) => {
+  res.send('✅ Zalo bot của Huy đang chạy ngon lành!');
 });
 
-app.listen(3000, () => console.log('Zalo bot đang chạy ở cổng 3000'));
+// 🟢 Webhook nhận tin nhắn
+app.post('/webhook', async (req, res) => {
+  try {
+    const { event_name, message } = req.body;
+
+    if (event_name === 'user_send_text') {
+      const userId = message.from.id;
+      const userMsg = message.text;
+
+      await axios.post('https://openapi.zalo.me/v3.0/oa/message/text', {
+        recipient: { user_id: userId },
+        message: { text: `Vợ của Huy nói: ${userMsg} đó hả ❤️` },
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'access_token': ACCESS_TOKEN,
+        },
+      });
+    }
+
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('❌ Lỗi webhook:', error.message);
+    res.status(500).send('Error');
+  }
+});
+
+// 🟢 Chạy server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Bot đang chạy ở cổng ${PORT}`));
