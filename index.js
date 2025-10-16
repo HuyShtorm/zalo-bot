@@ -1,4 +1,3 @@
-// index.js
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
@@ -9,15 +8,20 @@ app.use(bodyParser.json());
 
 const ACCESS_TOKEN = '1236451742861039202:TintsRsjThMzqVaJaTAMACZRSQAnZEjAUtBvVqzQweyPXtXPtDaDAfyfJsafEFpV';
 
-// 🟢 Cho phép truy cập file xác thực Zalo
+// Cho phép truy cập file xác thực Zalo
 app.use(express.static(path.join(__dirname)));
 
-// 🟢 Trang kiểm tra server
+// Trang test
 app.get('/', (req, res) => {
-  res.send('✅ Zalo bot của Huy đang chạy ngon lành!');
+  res.send('✅ Zalo bot của Huy đang hoạt động!');
 });
 
-// 🟢 Webhook nhận tin nhắn
+// 🔥 Khi Zalo xác thực webhook (gọi POST "/"), trả về OK
+app.post('/', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// Webhook thật xử lý tin nhắn người dùng
 app.post('/webhook', async (req, res) => {
   try {
     const { event_name, message } = req.body;
@@ -44,6 +48,5 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-// 🟢 Chạy server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Bot đang chạy ở cổng ${PORT}`));
